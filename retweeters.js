@@ -22,4 +22,25 @@ jQuery(document).ready(function($){
 		});
 		$("select#retweeter_topic_sub").html(options);
 	});
+	$("#retweeter_tweet_count").change(function(){
+		if ($(this).is(":checked")) {
+			$("#box_"+$(this).attr('name')+'_loc').show();
+		} else {
+			$("#box_"+$(this).attr('name')+'_loc').hide();
+		}		
+	});
+	$("#rts_tweets_load").bind("click", function(e) {
+		var page = $("#rts_tweets_load_page").val();
+		if(page) {
+			var link = $("#rts_current_link").val();
+			$.post("/wp-content/plugins/retweeters/retweeters_ajax.php", {retweeter_tweets_page:page, retweeter_link:link}, function(data) {
+				$("#rts_tweets_load_page_box").replaceWith(data);
+				var page_upd = $("#rts_tweets_load_page").val();
+				if(page_upd === undefined) {
+					$("#rts_tweets_load_button").hide();
+				}
+		    });
+		    return false;
+		} 
+	});
 })

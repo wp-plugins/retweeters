@@ -1,0 +1,27 @@
+.rts_header {padding:20px 0px 20px 0px;}
+.rts_header2{padding:5px 0px 3px 10px;border-bottom:1px solid #BFBFBF;margin-bottom:20px;background-color:#eceff5}
+fieldset.rts_fieldset {padding:15px; border:1px solid #BFBFBF;width:100%;background-color:#FFF;}
+fieldset.rts_fieldset label {float:left;margin:0px;padding:0px;}
+.rts_tbl_main {padding:0px;margin:0px;border-collapse:collapse;width:100%}
+.rts_tbl_main td {vertical-align:top;}
+div.rts_error {text-align:center;background-color:#ffebe8;border:1px solid #dd3c10;padding:3px 10px 3px 10px;margin-top:10px;margin-right:20px;margin-left:20px;}
+div.rts_success {text-align:center;background-color:#F7F7F7;border:1px solid #7f93bc;padding:3px 10px 3px 10px;margin-top:10px;margin-right:20px;margin-left:20px;}
+
+div.rts_tweet_box {margin-bottom:3px;width:100%;border:0px;}
+div.rts_tweet_box div {margin:0px;padding:0px;}
+div.rts_tweet_box div table{border:0px;padding:0px;border-collapse:collapse;width:100%;margin:0px;}
+div.rts_tweet_box div table td{vertical-align:top;padding:5px;background-color:#EFEFF7;border:0px;}
+div.rts_tweet_box div table td img{height:35px;width:35px;border:2px solid #FFF;}
+
+div#rts_tweets_load_button {text-align:center;}
+#rts_tweets_load {background-color:#eceff5;border-top:1px solid #d8dfea;border-left:1px solid #d8dfea;border-bottom:1px solid #7f93bc;border-right:1px solid #7f93bc;}
+
+.rts_ul {list-style-type:circle;padding-left:0px;margin-left:15px;}
+.rts_favicons {vertical-align:bottom;}
+
+div.rts_counter {background-color:#C6DFEF;display:inline;-webkit-border-radius:2px;-moz-border-radius:2px;padding:1px 3px 1px 3px}
+
+table.rts_widget {background-color:#FFF;width:100%;border:2px solid #7f93bc;padding:0px;border-collapse: collapse;}
+table.rts_widget th{font-size:14px;background-color:#7f93bc;padding:2px 0px 2px 0px;color:#FFF;text-align:center;}
+table.rts_widget td {margin:0px;padding:0px;}
+table.rts_widget td table {width:100%;padding:0px;border-collapse: collapse;margin:0px;}
