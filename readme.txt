@@ -3,7 +3,7 @@ Contributors: Vivek Puri
 Tags: twitter, retweet, social, news, trackbacks, trackback, buddypress
 Requires at least: 2.0.2
 Tested up to: 2.8.5
-Stable tag: trunk
+Stable tag: 1.2.0
 
 == Description ==
 Plugin shows Twitter users who recently tweeted links from your blog. In other words, quick and easy way to get your Twitter community rolling :)
