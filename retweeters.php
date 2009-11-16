@@ -3,7 +3,7 @@
 Plugin Name: Retweeters
 Plugin URI: http://www.linksalpha.com/
 Description: Displays Twitter users that recently Retweeted your articles
-Version: .20
+Version: 1.2.1
 Author: Vivek Puri
 Author URI: http://vivekpuri.com
 */
@@ -270,14 +270,19 @@ function fetch_feed_stats($id) {
 
 function load_tweets($text) {
 	$options = get_option(WIDGET_NAME_INTERNAL);
-	$option_valid_feed = $options['valid'];
-	if (!$option_valid_feed) {
-		return ;
-	}
 	$option_load_tweets = $options['tweet_comments'];
 	if (!$option_load_tweets) {
 		return ;
 	}	
+	load_link_tweets();
+}
+
+function load_link_tweets() {
+	$options = get_option(WIDGET_NAME_INTERNAL);
+	$option_valid_feed = $options['valid'];
+	if (!$option_valid_feed) {
+		return ;
+	}
 	$link = get_permalink();
 	$response = fetch_tweets($link);
 	if (empty($response)) {
@@ -287,7 +292,7 @@ function load_tweets($text) {
 		return ;
 	}
 	$html = '<div style="padding:30px 0px 0px 0px">';
-	$html .= '<div style="padding:0px 0px 5px 0px;"><h3><a target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'">Social Trackbacks</a></h3></div>';
+	$html .= '<div style="padding:0px 0px 5px 0px;"><span><h3><a target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'">Social Trackbacks</a></h3></span><span><input type="hidden" id="rts_blog_url" name="rts_blog_url" value="'.get_bloginfo('url').'" /></span></div>';
 	$html .= '<div id="rts_tweet_content">';
 	$html .= show_tweets($response->results);
 	if ($response->next_page) {
@@ -304,10 +309,6 @@ function load_tweets_page() {
 	if (!$option_valid_feed) {
 		return ;
 	}
-	$option_load_tweets = $options['tweet_comments'];
-	if (!$option_load_tweets) {
-		return ;
-	}	
 	if (!empty($_POST['retweeter_link'])) {
 		$link = $_POST['retweeter_link'];
 	}
@@ -421,12 +422,18 @@ function load_counters_comments($text) {
 	}
 }
 
-function load_tweet_count($link) {
+function load_tweet_count($link=NULL) {
+	if (!$link) {
+		$link = get_permalink();
+	}
+	if (!$link) {
+		return false;
+	}
 	$response = fetch_tweet_count($link);	
 	if (empty($response->count)) {
 		return false;
 	}
-	$html = '<a style="text-decoration:none;color:black;" target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'"><div class="rts_counter"><span style="font-size:105%">'.$response->count.'</span> tweets</div></a>';
+	$html = '<a class="rts_tweet_count_link" target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'"><div class="rts_counter"><span style="font-size:105%">'.$response->count.'</span> tweets</div></a>';
 	return $html;
 }
 
@@ -450,6 +457,79 @@ function fetch_tweet_count($link) {
 		}
 	}
 	return array();
+}
+
+function load_retweeters() {
+	$options = get_option(WIDGET_NAME_INTERNAL);
+	$valid_feed = $options['valid'];
+	if (!$valid_feed) {
+		return ;
+	}
+	$id = $options['id'];
+	if (!$id) {
+		return ;
+	}
+	$data = fetch_retweeters($id, $options['num']);
+	$cache_key = WIDGET_PREFIX.'_recent';
+	if (count($data) > 0) {
+		wp_cache_set($cache_key, $data, 'widget');
+	} else {
+		$data = wp_cache_get($cache_key, 'widget');
+	}
+	if (!$data) {
+		return ;
+	}
+	if (empty($data->results)) {
+		return ;
+	}
+	$html = '<table class="rts_widget"><tr><th>';
+	$html .= $options['title'];
+	$html .= '</th></tr><tr><td><table>';
+	$count = $options['num'];
+	$i = 1;
+	foreach ($data->results as $row) {
+		$i++;
+		$html .= '<tr>';
+		$border = 1;
+		if ($i > $count) {
+			$border = 0;
+		}
+		$html .= '<td style="padding:5px 5px 5px 8px;border-bottom:'.$border.'px dotted #cccccc;vertical-align:top;width:40px;margin:0px;"><a target="_blank" href="http://twitter.com/'.$row->from_user.'"><img src="'.$row->profile_image_url.'" style="width:40px; height:40px;" /></a></td>';
+		$html .= '<td style="padding:5px 5px 5px 3px;border-bottom:'.$border.'px dotted #cccccc;vertical-align:top;margin:0px;">';
+		$html .= '<div><a target="_blank" href="http://twitter.com/'.$row->from_user.'" style="font-size:12px;color:black">'.$row->from_user.'</a></div>';
+		$html .= '<div><a target="_blank" href="http://www.linksalpha.com/link?id='.$row->link_id.'" style="font-size:11px;color:gray;text-decoration:underline;">"'.substr($row->title, 0, $options['chars']).'"</a></div>';
+		$html .= '</td>';
+		$html .= '</tr>';
+		if ($i > $count) {
+			break;
+		}
+	}
+	$html .= '</table>';
+	$html .= '</td></tr></table>';
+	echo $html;
+	return ;
+}
+
+function fetch_retweeters($id, $num) {
+	if (!$id) {
+		return false;
+	}
+	$link = 'http://www.linksalpha.com/a/retweeters?id='.$id.'&count='.$num;
+	require_once(ABSPATH.WPINC.'/class-snoopy.php');
+	$snoop = new Snoopy;
+	$snoop->read_timeout = 3;
+	$snoop->agent = 'Retweeters  - '.get_option('siteurl');
+	$response = '';
+	if($snoop->fetchtext($link)){
+		if (strpos($snoop->response_code, '200')) {
+			$response_json = $snoop->results;
+			$response = retweeter_json_decode($response_json);
+			if (!$response->errorCode) {
+				return $response;
+			}
+		}
+	}
+	return false;
 }
 
 function retweeter_feed_update(){
@@ -507,100 +587,25 @@ function retweeter_feed_update(){
 	return $options;
 }
 
-
-function fetch_retweeters($id, $num) {
-	if (!$id) {
-		return false;
-	}
-	$link = 'http://www.linksalpha.com/a/retweeters?id='.$id.'&count='.$num;
-	require_once(ABSPATH.WPINC.'/class-snoopy.php');
-	$snoop = new Snoopy;
-	$snoop->read_timeout = 3;
-	$snoop->agent = 'Retweeters  - '.get_option('siteurl');
-	$response = '';
-	if($snoop->fetchtext($link)){
-		if (strpos($snoop->response_code, '200')) {
-			$response_json = $snoop->results;
-			$response = retweeter_json_decode($response_json);
-			if (!$response->errorCode) {
-				return $response;
-			}
-		}
-	}
-	return false;
-}
-
-
 function widget_retweeter_init() {
-	function load_retweeters($args) {
-		$options = get_option(WIDGET_NAME_INTERNAL);
-		$valid_feed = $options['valid'];
-		if (!$valid_feed) {
-			return ;
-		}
-		$data = fetch_retweeters($options['id'], $options['num']);
-		$cache_key = WIDGET_PREFIX.'_recent';
-		if (count($data) > 0) {
-			wp_cache_set($cache_key, $data, 'widget');
-		} else {
-			$data = wp_cache_get($cache_key, 'widget');
-		}
-		if (!$data) {
-			return ;
-		}
-		if (empty($data->results)) {
-			return ;
-		}
-		$html = '<table class="rts_widget"><tr><th>';
-		$html .= $options['title'];
-		$html .= '</th></tr><tr><td><table>';
-		$count = $options['num'];
-		$i = 1;
-		foreach ($data->results as $row) {
-			$i++;
-			$html .= '<tr>';
-			$border = 1;
-			if ($i > $count) {
-				$border = 0;
-			}
-			$html .= '<td style="padding:5px 5px 5px 8px;border-bottom:'.$border.'px dotted #cccccc;vertical-align:top;width:40px;margin:0px;"><a target="_blank" href="http://twitter.com/'.$row->from_user.'"><img src="'.$row->profile_image_url.'" style="width:40px; height:40px;" /></a></td>';
-			$html .= '<td style="padding:5px 5px 5px 3px;border-bottom:'.$border.'px dotted #cccccc;vertical-align:top;margin:0px;">';
-			$html .= '<div><a target="_blank" href="http://twitter.com/'.$row->from_user.'" style="font-size:12px;color:black">'.$row->from_user.'</a></div>';
-			$html .= '<div><a target="_blank" href="http://www.linksalpha.com/link?id='.$row->link_id.'" style="font-size:11px;color:gray;text-decoration:underline;">"'.substr($row->title, 0, $options['chars']).'"</a></div>';
-			$html .= '</td>';
-			$html .= '</tr>';
-			if ($i > $count) {
-				break;
-			}
-		}
-		$html .= '</table>';
-		$html .= '</td></tr></table>';
-		echo $html;
-		return ;
+	$dims = array('width' => 250, 'height' => 300);
+	$widget_ops = array('classname' => 'retweeter', 'description' => RETWEETERS);
+	wp_register_sidebar_widget(WIDGET_NAME, WIDGET_NAME, 'load_retweeters', $widget_ops);
+	wp_register_widget_control(WIDGET_NAME, WIDGET_NAME, 'retweeter_settings', $dims, $widget_ops);
+	add_action('sidebar_admin_setup', 'retweeter_setup');
+}
+	
+function retweeter_settings() {
+	$html = '<div style="text-align:center;padding:10px 5px 15px 5px;"><a style="font-size:14px;" href="'.get_option('siteurl').'/wp-admin/plugins.php?page=retweeters'.'">Click Here to Edit Settings</a></div>';
+	echo $html;
+}
+	
+function retweeter_setup() {
+	$options = $newoptions = get_option(WIDGET_NAME_INTERNAL);
+	if ( $options != $newoptions ) {
+		update_option(WIDGET_NAME_INTERNAL, $newoptions);
+		retweeter_register();
 	}
-
-	function retweeter_setup() {
-		$options = $newoptions = get_option(WIDGET_NAME_INTERNAL);
-		if ( $options != $newoptions ) {
-			update_option(WIDGET_NAME_INTERNAL, $newoptions);
-			retweeter_register();
-		}
-	}
-
-	function retweeter_settings() {
-		$html = '<div style="text-align:center;padding:10px 5px 15px 5px;"><a style="font-size:14px;" href="'.get_option('siteurl').'/wp-admin/plugins.php?page=retweeters'.'">Click Here to Edit Settings</a></div>';
-		echo $html;
-	}
-
-	function widget_retweeter_register() {
-		$dims = array('width' => 250, 'height' => 300);
-		$widget_ops = array('classname' => 'retweeter', 'description' => RETWEETERS);
-		wp_register_sidebar_widget(WIDGET_NAME, WIDGET_NAME, 'load_retweeters', $widget_ops);
-		wp_register_widget_control(WIDGET_NAME, WIDGET_NAME, 'retweeter_settings', $dims, $widget_ops);
-		add_action('sidebar_admin_setup', 'retweeter_setup');
-	}
-
-	widget_retweeter_register();	
 }
 
 function retweeter_json_decode($str) {
@@ -657,6 +662,5 @@ function prettyTime($fromTime) {
         return $years . ' year' . ($years != 1 ? 's' : '') . ' ago'; 
     } 
 }
-
 
 ?>

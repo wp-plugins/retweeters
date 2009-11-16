@@ -33,7 +33,8 @@ jQuery(document).ready(function($){
 		var page = $("#rts_tweets_load_page").val();
 		if(page) {
 			var link = $("#rts_current_link").val();
-			$.post("/wp-content/plugins/retweeters/retweeters_ajax.php", {retweeter_tweets_page:page, retweeter_link:link}, function(data) {
+			var blog_url = $("#rts_blog_url").val();
+			$.post(blog_url+"/wp-content/plugins/retweeters/retweeters_ajax.php", {retweeter_tweets_page:page, retweeter_link:link}, function(data) {
 				$("#rts_tweets_load_page_box").replaceWith(data);
 				var page_upd = $("#rts_tweets_load_page").val();
 				if(page_upd === undefined) {

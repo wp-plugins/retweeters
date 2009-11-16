@@ -3,7 +3,7 @@ Contributors: Vivek Puri
 Tags: twitter, retweet, social, news, trackbacks, trackback, buddypress
 Requires at least: 2.0.2
 Tested up to: 2.8.5
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 
 == Description ==
 
@@ -19,9 +19,21 @@ Plugin shows Count of Tweets linking to your blog. Count can be configured to sh
 
 1. Upload retweeters.zip to '/wp-content/plugins/' directory and unzip it.
 1. Activate the Plugin from "Manage Plugins" window
-1. Retweeters Widget: From the "Widgets" Window drag and drop the "Retweeters" widget onto the desired sidebar. This widget is not yet active. Go to Step 4.
+1. Retweeters Widget: From the "Widgets" Window, drag and drop the "Retweeters" widget onto the desired sidebar. This widget is not yet active. Go to Step 4.
 1. Activate Features: From the Wordpress Plugins side-menu bar, click on the "Retweeters" Plugin link. Once there, choose the required options and click on "Update Options" button. If you are using the plugin for the first time and LinksAlpha.com is indexing your blog for the first time, content in the "Retweeters" sidebar widget will show up in 2-3 minutes. "Tweet" content for each blog post might take 10-15 minutes to show up.
 1. Stats: To make your life easier, you can now easily tell if your blog is getting indexed by LinksAlpha.com. From the "Retweeters" plugin page, "Stats" column on the right hand side of the page should show your recent blog posts indexed by LinksAlpha.com. If nothing shows up in stats even after 30 minutes of activating the plugin, please contact support@linksalpha.com
+
+Manual positioning of features on template:
+1. Retweeters Widget: <?php echo load_retweeters(); ?> (example: Add to sidebar template)
+1. Tweets for each blog post: <?php load_link_tweets(); ?> (example: Add to single template)
+1. Tweet Count for each blog post: <?php load_link_tweets(); ?> (example: Add to index and sidebar template)
+
+== Frequently Asked Questions ==
+
+Manual positioning of features on template:
+1. Retweeters Widget: <?php echo load_retweeters(); ?> (example: Add to sidebar template)
+1. Tweets for each blog post: <?php load_link_tweets(); ?> (example: Add to single template)
+1. Tweet Count for each blog post: <?php load_link_tweets(); ?> (example: Add to index and sidebar template)
 
 == Screenshots ==
 
@@ -31,6 +43,9 @@ Plugin shows Count of Tweets linking to your blog. Count can be configured to sh
 4. Retweeters stats window
 
 == Changelog ==
+
+= 1.2.1 =
+* Support for manual positioning of features
 
 = 0.20 =
 * Add: Ability to show Tweets for each blog post

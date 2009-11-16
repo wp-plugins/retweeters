@@ -25,3 +25,5 @@ table.rts_widget {background-color:#FFF;width:100%;border:2px solid #7f93bc;padd
 table.rts_widget th{font-size:14px;background-color:#7f93bc;padding:2px 0px 2px 0px;color:#FFF;text-align:center;}
 table.rts_widget td {margin:0px;padding:0px;}
 table.rts_widget td table {width:100%;padding:0px;border-collapse: collapse;margin:0px;}
+
+a.rts_tweet_count_link {text-decoration:none;color:black;}
