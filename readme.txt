@@ -24,16 +24,10 @@ Plugin shows Count of Tweets linking to your blog. Count can be configured to sh
 1. Stats: To make your life easier, you can now easily tell if your blog is getting indexed by LinksAlpha.com. From the "Retweeters" plugin page, "Stats" column on the right hand side of the page should show your recent blog posts indexed by LinksAlpha.com. If nothing shows up in stats even after 30 minutes of activating the plugin, please contact support@linksalpha.com
 
 Manual positioning of features on template:
-1. Retweeters Widget: <?php echo load_retweeters(); ?> (example: Add to sidebar template)
-1. Tweets for each blog post: <?php load_link_tweets(); ?> (example: Add to single template)
-1. Tweet Count for each blog post: <?php load_link_tweets(); ?> (example: Add to index and sidebar template)
 
-== Frequently Asked Questions ==
-
-Manual positioning of features on template:
-1. Retweeters Widget: <?php echo load_retweeters(); ?> (example: Add to sidebar template)
-1. Tweets for each blog post: <?php load_link_tweets(); ?> (example: Add to single template)
-1. Tweet Count for each blog post: <?php load_link_tweets(); ?> (example: Add to index and sidebar template)
+1. Retweeters Widget: load_retweeters()  (example: Add to sidebar template)
+1. Tweets for each blog post: load_link_tweets()  (example: Add to single template)
+1. Tweet Count for each blog post: load_tweet_count  (example: Add to index and sidebar template)
 
 == Screenshots ==
 
@@ -41,6 +35,7 @@ Manual positioning of features on template:
 2. Wordpress Widget and Sidebar management window
 3. Retweeters feature/options window
 4. Retweeters stats window
+5. Retweeters sidebar widget on the front-end
 
 == Changelog ==
 
