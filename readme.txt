@@ -25,9 +25,9 @@ Plugin shows Count of Tweets linking to your blog. Count can be configured to sh
 
 Manual positioning of features on template:
 
-1. Retweeters Widget: load_retweeters()  (example: Add to sidebar template)
-1. Tweets for each blog post: load_link_tweets()  (example: Add to single template)
-1. Tweet Count for each blog post: load_tweet_count  (example: Add to index and sidebar template)
+1. Retweeters Widget: "load_retweeters()"  (example: Add to sidebar template)
+1. Tweets for each blog post: "load_link_tweets()"  (example: Add to single template)
+1. Tweet Count for each blog post: "load_tweet_count()"  (example: Add to index and sidebar template)
 
 == Screenshots ==
 
