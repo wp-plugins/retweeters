@@ -2,8 +2,8 @@
 Contributors: Vivek Puri
 Tags: twitter, retweet, social, news, trackbacks, trackback, buddypress
 Requires at least: 2.0.2
-Tested up to: 2.8.5
-Stable tag: 1.2.1
+Tested up to: 2.9.2
+Stable tag: 1.2.2
 
 == Description ==
 
@@ -15,6 +15,11 @@ Plugin shows Tweets linking your Blog posts. Tweets show up below the comment fo
 
 Plugin shows Count of Tweets linking to your blog. Count can be configured to show next to "Comment Count" or "Blog Post Date" for each blog post.
 
+Also from the same developer:
+
+1. http://wordpress.org/extend/plugins/network-publisher/
+1. http://wordpress.org/extend/plugins/buzz-roll/
+
 == Installation ==
 
 1. Upload retweeters.zip to '/wp-content/plugins/' directory and unzip it.
@@ -25,9 +30,9 @@ Plugin shows Count of Tweets linking to your blog. Count can be configured to sh
 
 Manual positioning of features on template:
 
-1. Retweeters Widget: "load_retweeters()"  (example: Add to sidebar template)
-1. Tweets for each blog post: "load_link_tweets()"  (example: Add to single template)
-1. Tweet Count for each blog post: "load_tweet_count()"  (example: Add to index and sidebar template)
+1. Retweeters Widget: <code><?php load_retweeters(); ?></code>  (example: If you want to add to sidebar.php template)
+1. Tweets for each blog post: <code><?php load_link_tweets(); ?></code>  (example: If you want to add to single.php and index.php template)
+1. Tweet Count for each blog post: <code><?php load_tweet_count(); ?></code>  (example: If you want to add to index.php and sidebar.php template)
 
 == Screenshots ==
 
@@ -38,6 +43,10 @@ Manual positioning of features on template:
 5. Retweeters sidebar widget on the front-end
 
 == Changelog ==
+
+= 1.2.2 =
+* Added more UI options
+* Added HTTP function to get around issues arising out of snoopy class
 
 = 1.2.1 =
 * Support for manual positioning of features

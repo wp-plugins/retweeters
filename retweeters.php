@@ -3,9 +3,27 @@
 Plugin Name: Retweeters
 Plugin URI: http://www.linksalpha.com/
 Description: Displays Twitter users that recently Retweeted your articles
-Version: 1.2.1
+Version: 1.2.2
 Author: Vivek Puri
-Author URI: http://vivekpuri.com
+Author URI: http://www.linksalpha.com
+*/
+
+/*
+    Copyright (C) 2010 LinksAlpha.com.
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 define('WIDGET_NAME', 'Retweeters');
@@ -24,10 +42,11 @@ $retweeter_settings['id'] = array('default'=>'');
 $retweeter_settings['chars'] = array('label'=>'Post Title Character Count:', 'type'=>'text', 'default'=>'30', 'size'=>"3");
 $retweeter_settings['tweet_comments'] = array('label'=>'Show Tweets as Comments on Blog Posts:', 'type'=>'checkbox', 'default'=>'1');
 $retweeter_settings['tweet_count'] = array('label'=>'Show Tweet Count on Blog Posts:', 'type'=>'checkbox', 'default'=>'1');
-$retweeter_settings['tweet_count_loc'] = array('label'=>'Show Tweet Counts next to:', 'type'=>'text', 'default'=>'', 'options'=>array('post_time'=>'Blog Post Time', 'comment_count'=>'Comment Count'));
+$retweeter_settings['tweet_count_loc'] = array('label'=>'Show Tweet Counts next to:', 'type'=>'text', 'default'=>'', 'options'=>array('post_time'=>'Blog Post Time', 'comment_count'=>'Comment Count', 'the_content'=>'Before Content', 'the_content_after'=>'After Content'));
+$retweeter_settings['tweet_count_style'] = array('label'=>'Select Style:', 'type'=>'text', 'default'=>'', 'options'=>array('rts_counter_style_1'=>'Style 1', 'rts_counter_style_2'=>'Style 2', 'rts_counter_style_3'=>'Style 3', 'rts_counter_style_4'=>'Style 4', 'rts_counter_style_5'=>'Style 5', 'rts_counter_style_6'=>'Style 6', 'rts_counter_style_7'=>'Style 7', 'rts_counter_style_8'=>'Style 8', 'rts_counter_style_9'=>'Style 9'));
 
 $options = get_option(WIDGET_NAME_INTERNAL);
-$current_globals = array('feed_url'=>$options['url'], 'topic'=>$options['topic'], 'topic_sub'=>$options['topic_sub'], 'tweet_count_loc'=>$options['tweet_count_loc']);
+$current_globals = array('feed_url'=>$options['url'], 'topic'=>$options['topic'], 'topic_sub'=>$options['topic_sub'], 'tweet_count_loc'=>$options['tweet_count_loc'], 'tweet_count_style'=>$options['tweet_count_style']);
 
 function retweeters_init() {
 	wp_enqueue_script('jquery');
@@ -37,9 +56,10 @@ function retweeters_init() {
 	wp_enqueue_style('retweeterscss');
 	add_action('admin_menu', 'retweeters_pages');
 	add_action('admin_menu', 'retweeters_pages');
-	add_action('comment_form', 'load_tweets');
+	add_action('the_content', 'load_tweets');
 	add_action('the_time', 'load_counters_time');
 	add_action('comments_number', 'load_counters_comments');	
+	add_action('the_content', 'load_counters_content');	
 }
 add_action('init', 'retweeters_init');
 add_action('widgets_init', 'widget_retweeter_init');
@@ -77,11 +97,11 @@ function retweeters_conf() {
 		$options = retweeter_feed_update();
 	}
 	
-	$html  = '<div class="rts_header"><big><strong>Retweeters</strong></big></div>';
+	$html  = '<div class="rts_header"><h2><img class="la_image" src="http://www.linksalpha.com/favicon.ico" />&nbsp;Retweeters</h2></div>';
 	$html .= '<table class="rts_tbl_main"><tr><td style="width:50%; padding-right:30px; border-right:1px dotted #BFBFBF;">';
 	$html .= '<div class="rts_header2"><big><strong>Setup</strong></big></div>';
-	$html .= '<div style="text-align:left;">';
-	$html .= '<form action="" method="post" id="retweeters-conf" style="width:90%;">';
+	$html .= '<div class="la_content_box">';
+	$html .= '<form action="" method="post" id="retweeters-conf" style="width:93%;">';
 	$html .= '<fieldset class="rts_fieldset">';
 	$html .= '<legend>Settings:</legend>';
 	
@@ -182,7 +202,7 @@ function retweeters_conf() {
 	$curr_field = 'tweet_count_loc';
 	$field_name = sprintf('%s_%s', WIDGET_PREFIX, $curr_field);
 	$field_value = htmlspecialchars($options[$curr_field], ENT_QUOTES);
-	$html .= '<div id="box_'.$field_name.'"><div><label for="'.$field_name.'">'.$retweeter_settings[$curr_field]['label'].'</label></div>';
+	$html .= '<div id="box_'.$field_name.'"><div><label for="'.$field_name.'">'.$retweeter_settings[$curr_field]['label'].'</label> </div>';
 	$html .= '<div style="padding-bottom:10px">';
 	$html .= '<select id="'.$field_name.'" name="'.$field_name.'"';
 	foreach ($retweeter_settings[$curr_field]['options'] as $key=>$val) {
@@ -194,15 +214,35 @@ function retweeters_conf() {
 	}
 	$html .= '</select></div></div>';
 	
+	$curr_field = 'tweet_count_style';
+	$field_name = sprintf('%s_%s', WIDGET_PREFIX, $curr_field);
+	$field_value = htmlspecialchars($options[$curr_field], ENT_QUOTES);
+	$html .= '<div id="box_'.$field_name.'">'.$retweeter_settings[$curr_field]['label'].'</div>';
+	$html .= '<div style="padding-bottom:10px;padding-top:3px;">';
+	foreach ($retweeter_settings[$curr_field]['options'] as $key=>$val) {
+		$checked = '';
+		if ($key == $current_globals['tweet_count_style']) {
+			$checked = 'checked';
+		}
+		if(in_array($key, array('rts_counter_style_7', 'rts_counter_style_8', 'rts_counter_style_9'))) {
+			$html .= '<div class="la_style_demo"><input type="radio" name="'.$field_name.'" value="'.$key.'" '.$checked.' />&nbsp;&nbsp;<a class="'.$key.'" target="_blank" href="http://www.linksalpha.com/"><div id="main"><div id="first">105</div><div id="second">tweets</div></div></a></div>';
+		} else {
+			$html .= '<div class="la_style_demo"><input type="radio" name="'.$field_name.'" value="'.$key.'" '.$checked.' />&nbsp;&nbsp;<a class="'.$key.'" target="_blank" href="http://www.linksalpha.com/"><div>105 tweets</div></a></div>';	
+		}
+	}
+	$html .= '</div>';
+	
 	$html .= '</fieldset>';
-	$html .= '<div style="padding-top:20px;"><input type="submit" name="submit" value="Update Options" /></div>';
+	$html .= '<div style="padding-top:20px;"><input type="submit" name="submit" class="button-primary" value="Update Options" /></div>';
 	$html .= '</form>';
 	$html .= '</div></td><td style="padding:0px 30px 0px 30px;">';
 	
-	$html .= '<div class="rts_header2"><big><strong>Stats</strong></big></div>';
+	$html .= '<div class="rts_header2"><big><strong>More Plugins</strong></big></div><div class="la_content_box_3"><div style="padding:0px 0px 5px 0px"><a href="http://wordpress.org/extend/plugins/network-publisher/">Network Publisher</a></div><div><a href="http://wordpress.org/extend/plugins/buzz-roll/">Buzz Roll</a></div></div><br />';
+	
+	$html .= '<div class="rts_header2"><big><strong>Stats</strong></big></div><div class="la_content_box_2">';
 	$html .= load_feed_stats();
-	$html .= '</td></tr></table>';
-	$html .= '<div style="margin-top:10px;margin-right:20px;background-color:#eceff5;padding:5px;">Powered by <a style="vertical-align:baseline;" href="http://www.linksalpha.com"><img src="http://linksalpha.s3.amazonaws.com/static/LALOGO12PX1.png" /></a></div>';
+	$html .= '</div></td></tr></table>';
+	$html .= '<div style="margin-top:40px;margin-right:20px;background-color:#eceff5;padding:5px;">Powered by <a style="vertical-align:baseline;" href="http://www.linksalpha.com"><img src="http://linksalpha.s3.amazonaws.com/static/LALOGO12PX1.png" /></a></div>';
 	echo $html;
 }
 
@@ -233,9 +273,8 @@ function load_feed_stats() {
 		$html = '<div>No blog posts detected for this blog in the past 30 days</div>';
 		return $html;
 	}
-	$html = '<div><h4>Recent <a href="'.get_bloginfo(url).'">'.get_bloginfo('name').'</a> Blog Posts Indexed by <a target="_blank" href="http://www.linksalpha.com">LinksAlpha.com</a></h4></div>';
- 	foreach ($response->results as $post) {
- 		
+	$html = '<h4>Recent <a href="'.get_bloginfo(url).'">'.get_bloginfo('name').'</a> Blog Posts Indexed by <a target="_blank" href="http://www.linksalpha.com">LinksAlpha.com</a></h4>';
+ 	foreach ($response->results as $post) { 		
  		$html .= '<div style="padding-bottom:2px;padding-top:2px;"><a target="_blank" href="http://www.linksalpha.com/link?id='.$post->id.'">'.$post->title.'</a></div>';
  		$html .= '<div style="padding-bottom:10px;border-bottom:1px dotted #BFBFBF;"><img class="rts_favicons" src="http://d25b87jrm423ks.cloudfront.net/static/twitter_favicon.ico" />&nbsp;'.$post->count_tweets.'&nbsp;&nbsp;&nbsp;&nbsp;';
  		$html .= '<img class="rts_favicons" src="http://d25b87jrm423ks.cloudfront.net/static/facebook_favicon.ico" />&nbsp;'.$post->count_fb_share.'&nbsp;&nbsp;&nbsp;&nbsp;';
@@ -251,33 +290,32 @@ function fetch_feed_stats($id) {
 		return array();
 	}
 	$url = 'http://www.linksalpha.com/a/feedhealth?id='.$id;
-	require_once(ABSPATH.WPINC.'/class-snoopy.php');
-	$snoop = new Snoopy;
-	$snoop->read_timeout = 3;
-	$snoop->agent = 'Retweeters  - '.get_option('siteurl');
-	$response = '';
-	if($snoop->fetchtext($url)){
-		if (strpos($snoop->response_code, '200')) {
-			$response_json = $snoop->results;
-			$response = retweeter_json_decode($response_json);
-			if (!$response->errorCode) {
-				return $response;
-			}
-		}
+	$response_full = make_http_call($url);
+	$response_code = $response_full[0];
+	if ($response_code != 200) {
+		return array();
 	}
-	return array();
+	$response = linksalpha_json_decode($response_full[1]);
+	if($response->errorCode > 0) {
+		return array();
+	}
+	return $response;
 }
 
-function load_tweets($text) {
+function load_tweets($content) {
 	$options = get_option(WIDGET_NAME_INTERNAL);
 	$option_load_tweets = $options['tweet_comments'];
 	if (!$option_load_tweets) {
 		return ;
 	}	
-	load_link_tweets();
+	if (is_single() or is_page()) {
+		$html = load_link_tweets(FALSE);
+		$content =  $content.'<br />'.$html;
+	}
+	return $content;
 }
 
-function load_link_tweets() {
+function load_link_tweets($show = TRUE) {
 	$options = get_option(WIDGET_NAME_INTERNAL);
 	$option_valid_feed = $options['valid'];
 	if (!$option_valid_feed) {
@@ -292,15 +330,19 @@ function load_link_tweets() {
 		return ;
 	}
 	$html = '<div style="padding:30px 0px 0px 0px">';
-	$html .= '<div style="padding:0px 0px 5px 0px;"><span><h3><a target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'">Social Trackbacks</a></h3></span><span><input type="hidden" id="rts_blog_url" name="rts_blog_url" value="'.get_bloginfo('url').'" /></span></div>';
+	$html .= '<div style="padding:0px 0px 5px 0px;"><span><h2><a target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'">Social Trackbacks</a></h2></span><span><input type="hidden" id="rts_blog_url" name="rts_blog_url" value="'.get_bloginfo('url').'" /></span></div>';
 	$html .= '<div id="rts_tweet_content">';
 	$html .= show_tweets($response->results);
 	if ($response->next_page) {
 		$html .= '<div id="rts_tweets_load_page_box"><input type="hidden" id="rts_tweets_load_page" name="rts_tweets_load_page" value="'.$response->next_page.'" /></div>';
-		$html .= '<div id="rts_tweets_load_button"><input type="hidden" id="rts_current_link" name="rts_current_link" value="'.$link.'" /><input type="button" id="rts_tweets_load" name="rts_tweets_load" value="more" /></div>';
+		$html .= '<div id="rts_tweets_load_button"><input type="hidden" id="rts_current_link" name="rts_current_link" value="'.$link.'" /><input type="button" id="rts_tweets_load" name="rts_tweets_load" value="View More" /></div>';
 	}
 	$html .= '</div>';	
-	echo $html;
+	if ($show) {
+		echo $html;
+		return;
+	} 
+	return $html;
 }
 
 function load_tweets_page() {
@@ -335,12 +377,12 @@ function load_tweets_page() {
 function show_tweets($tweets) {
 	$html = '';
 	foreach ($tweets as $key=>$val) {
-		$html .= '<div class="rts_tweet_box"><div><table><tr>';
-		$html .= '<td style="width:40px;"><img src="'.$val->profile_image_url.'"></td>';
-		$html .= '<td><div><span style="font-weight:bold"><a target="_blank" href="http://twitter.com/'.$val->from_user.'">'.$val->from_user.'</a></span><span>&nbsp;'.$val->tweet.'</span></div>';
 		$created_at = date("Y-m-d H:i:s", $val->created_at);
 		$created_at = prettyTime($created_at);
-		$html .= '<div style="color:#6F6F6F;font-size:11px;">'.$created_at.'</div>';
+		$html .= '<div class="rts_tweet_box"><div><table><tr>';
+		$html .= '<td style="width:40px;"><img src="'.$val->profile_image_url.'"></td>';
+		$html .= '<td><div><span style="font-weight:bold"><a target="_blank" href="http://twitter.com/'.$val->from_user.'">'.$val->from_user.'</a></span><span style="color:#6F6F6F;font-size:11px;">&nbsp;&nbsp;&nbsp;'.$created_at.'</span><span>&nbsp;&nbsp;&nbsp;<a target="_blank" href="http://www.linksalpha.com" class="rts_linklight">via LinksAlpha.com</a></span></div>';
+		$html .= '<div style="padding-right:10px;">'.$val->tweet.'</div>';
 		$html .= '</td></tr></table></div>';
 		$html .= '</div>';
 	}
@@ -353,21 +395,16 @@ function fetch_tweets($link, $page=0) {
 		return array();
 	}
 	$url = 'http://www.linksalpha.com/a/tweets?link='.$link.'&page='.$page;
-	require_once(ABSPATH.WPINC.'/class-snoopy.php');
-	$snoop = new Snoopy;
-	$snoop->read_timeout = 3;
-	$snoop->agent = 'Retweeters  - '.get_option('siteurl');
-	$response = '';
-	if($snoop->fetchtext($url)){
-		if (strpos($snoop->response_code, '200')) {
-			$response_json = $snoop->results;
-			$response = retweeter_json_decode($response_json);
-			if (!$response->errorCode) {
-				return $response;
-			}
-		}
+	$response_full = make_http_call($url);
+	$response_code = $response_full[0];
+	if ($response_code != 200) {
+		return array();
 	}
-	return array();
+	$response = linksalpha_json_decode($response_full[1]);
+	if($response->errorCode > 0) {
+		return array();
+	}
+	return $response;
 }
 
 function load_counters_time($text) {
@@ -375,25 +412,21 @@ function load_counters_time($text) {
 	$option_valid_feed = $options['valid'];
 	if (!$option_valid_feed) {
 		echo $text;
-		return ;
+		return;
 	}
 	$option_tweet_count = $options['tweet_count'];
 	if (!$option_tweet_count) {
 		echo $text;
-		return ;
+		return;
 	}
 	$option_tweet_count_loc = $options['tweet_count_loc'];
 	if ($option_tweet_count_loc != 'post_time') {
 		echo $text;
-		return ;
+		return;
 	}
 	$link = get_permalink();
-	$html = load_tweet_count($link);
-	if ($html) {
-		echo $text.'&nbsp;&nbsp;'.$html;
-	} else {
-		echo $text;
-	}
+	$html = load_tweet_count($link, FALSE);
+	echo $text.'&nbsp;&nbsp;'.$html;
 }
 
 function load_counters_comments($text) {
@@ -401,20 +434,20 @@ function load_counters_comments($text) {
 	$option_valid_feed = $options['valid'];
 	if (!$option_valid_feed) {
 		echo $text;
-		return ;
+		return;
 	}
 	$option_tweet_count = $options['tweet_count'];
 	if (!$option_tweet_count) {
 		echo $text;
-		return ;
+		return;
 	}
 	$option_tweet_count_loc = $options['tweet_count_loc'];
 	if ($option_tweet_count_loc != 'comment_count') {
 		echo $text;
-		return ;
+		return;
 	}
 	$link = get_permalink();
-	$html = load_tweet_count($link);
+	$html = load_tweet_count($link, FALSE);
 	if ($html) {
 		echo $text.'&nbsp;&nbsp;'.$html;	
 	} else {
@@ -422,19 +455,54 @@ function load_counters_comments($text) {
 	}
 }
 
-function load_tweet_count($link=NULL) {
+function load_counters_content($text) {
+	$options = get_option(WIDGET_NAME_INTERNAL);
+	$option_valid_feed = $options['valid'];
+	if (!$option_valid_feed) {
+		echo $text;
+		return;
+	}
+	$option_tweet_count = $options['tweet_count'];
+	if (!$option_tweet_count) {
+		echo $text;
+		return;
+	}
+	$option_tweet_count_loc = $options['tweet_count_loc'];
+	if (!in_array($option_tweet_count_loc, array('the_content', 'the_content_after'))) {
+		echo $text;
+		return;
+	}
+	$link = get_permalink();
+	$html = load_tweet_count($link, FALSE);
+	if ($option_tweet_count_loc != 'the_content') {
+		echo $text.$html;
+	} else {
+		echo $html.$text;
+	}
+	return;
+}
+
+function load_tweet_count($link=NULL, $show=TRUE) {
 	if (!$link) {
 		$link = get_permalink();
 	}
 	if (!$link) {
-		return false;
+		return;
 	}
-	$response = fetch_tweet_count($link);	
-	if (empty($response->count)) {
-		return false;
+	$options = get_option(WIDGET_NAME_INTERNAL);
+	$option_tweet_count_style= $options['tweet_count_style'];
+	$response = fetch_tweet_count($link);
+	if(in_array($option_tweet_count_style, array('rts_counter_style_7', 'rts_counter_style_8', 'rts_counter_style_9'))) {
+		$html = '<a class="'.$option_tweet_count_style.'" target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'"><div id="main"><div id="first">'.$response->count.'</div><div id="second">tweets</div></div></a>';
+	} else {
+		$html = '<a class="'.$option_tweet_count_style.'" target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'"><div>'.$response->count.' tweets</div></a>';	
 	}
-	$html = '<a class="rts_tweet_count_link" target="_blank" href="http://www.linksalpha.com/link?id='.$response->link_id.'"><div class="rts_counter"><span style="font-size:105%">'.$response->count.'</span> tweets</div></a>';
-	return $html;
+	if ($show) {
+		echo $html;
+	} else {
+		return $html;
+	}
+	
 }
 
 function fetch_tweet_count($link) {
@@ -442,21 +510,16 @@ function fetch_tweet_count($link) {
 		return array();
 	}
 	$url = 'http://www.linksalpha.com/a/tweetcount?link='.$link;
-	require_once(ABSPATH.WPINC.'/class-snoopy.php');
-	$snoop = new Snoopy;
-	$snoop->read_timeout = 3;
-	$snoop->agent = 'Retweeters  - '.get_option('siteurl');
-	$response = '';
-	if($snoop->fetchtext($url)){
-		if (strpos($snoop->response_code, '200')) {
-			$response_json = $snoop->results;
-			$response = retweeter_json_decode($response_json);
-			if (!$response->errorCode) {
-				return $response;
-			}
-		}
+	$response_full = make_http_call($url);
+	$response_code = $response_full[0];
+	if ($response_code != 200) {
+		return array();
 	}
-	return array();
+	$response = linksalpha_json_decode($response_full[1]);
+	if($response->errorCode > 0) {
+		return array();
+	}
+	return $response;
 }
 
 function load_retweeters() {
@@ -514,22 +577,17 @@ function fetch_retweeters($id, $num) {
 	if (!$id) {
 		return false;
 	}
-	$link = 'http://www.linksalpha.com/a/retweeters?id='.$id.'&count='.$num;
-	require_once(ABSPATH.WPINC.'/class-snoopy.php');
-	$snoop = new Snoopy;
-	$snoop->read_timeout = 3;
-	$snoop->agent = 'Retweeters  - '.get_option('siteurl');
-	$response = '';
-	if($snoop->fetchtext($link)){
-		if (strpos($snoop->response_code, '200')) {
-			$response_json = $snoop->results;
-			$response = retweeter_json_decode($response_json);
-			if (!$response->errorCode) {
-				return $response;
-			}
-		}
+	$url = 'http://www.linksalpha.com/a/retweeters?id='.$id.'&count='.$num;
+	$response_full = make_http_call($url);
+	$response_code = $response_full[0];
+	if ($response_code != 200) {
+		return false;
 	}
-	return false;
+	$response = linksalpha_json_decode($response_full[1]);
+	if($response->errorCode > 0) {
+		return false;
+	}
+	return $response;
 }
 
 function retweeter_feed_update(){
@@ -538,7 +596,6 @@ function retweeter_feed_update(){
 	$topic_sub = $options['topic_sub'];
 	$url = get_option('siteurl');
 	$desc = get_bloginfo('description');
-	
 	if (!$url) {
 		$html  = '<div class="rts_error"><span>Not able to detect Blog URL.</span>';
 		$html .= '<span>&nbsp;Please contact <a href="http://www.linksalpha.com" target="_blank">LinksAlpha.com</a> Support at support@linksalpha.com</span></div>';
@@ -546,43 +603,28 @@ function retweeter_feed_update(){
 		return false;
 	}
 
-	$link = 'http://api.linksalpha.net/addfeed.php?url='.urlencode($url).'&topic='.$topic.'&topic_sub='.$topic_sub.'&desc='.urlencode($desc);
-	require_once(ABSPATH.WPINC.'/class-snoopy.php');
-	$snoop = new Snoopy;
-	$snoop->agent = 'Retweeters  - '.get_option('siteurl');
-	$response = '';
-	if($snoop->fetchtext($link)){
-		if (strpos($snoop->response_code, '200')) {
-			$response_json = $snoop->results;
-			$response = retweeter_json_decode($response_json);
-		}
+	$link = 'http://www.linksalpha.com/a/addfeed?url='.urlencode($url).'&topic='.$topic.'&topic_sub='.$topic_sub.'&desc='.urlencode($desc);
+	
+	$response_full = make_http_call($link);
+	$response_code = $response_full[0];
+	if ($response_code != 200) {
+		$html = '<div class="msg_error">Error occured. Please try again later.</div>';
+		echo $html;
+		return FALSE;
 	}
-	if (!$response) {
-		echo '<div class="rts_error"><span>Error occured&nbsp;&nbsp;</span>';
-		echo '<span>&nbsp;Please try again</span></div>';
-		return false;
+	$response = linksalpha_json_decode($response_full[1]);
+	if($response->errorCode > 0) {
+		$html = '<div class="msg_error">Error occured. Please try again later. Error Message: '.$response->errorMessage.'</div>';
+		echo $html;
+		return FALSE;
 	}
-	if (isset($response->error)) {
-		if ($response->error == ERROR_INTERNAL or $response->error == '') {
-			echo '<div class="rts_error"><span>Error occured</span>';
-			echo '<span>&nbsp;Please try again</span></div>';
-		} elseif ($response->error = ERROR_INVALID_URL) {
-			echo '<div class="rts_error"><span>Not able to detect Blog URL</span></div>';
-			echo '<span>&nbsp;LinksAlpha.com support has been notified</span></div>';
-		}
-	}
-	if (isset($response->success)) {
-		$feed_id = $response->id;
-		$feed_new = $response->new;
+	
+	if (isset($response->results->success)) {
+		$feed_id = $response->results->id;
 		$options['valid'] = 'yes';
 		$options['id'] = $feed_id;
 		update_option(WIDGET_NAME_INTERNAL, $options);
-		if ($feed_new == 'no') {
-			echo '<div class="rts_success"><span>Widget has been updated</span></div>';
-		} else {
-			echo '<div class="rts_success"><span>Widget has been updated</span>';
-			echo '<span>&nbsp;Data will refresh in 2 mins</span></div>';
-		}
+		echo '<div class="msg_success"><span>Widget has been updated</span></div>';
 	}
 	return $options;
 }
@@ -608,7 +650,7 @@ function retweeter_setup() {
 	}
 }
 
-function retweeter_json_decode($str) {
+function linksalpha_json_decode($str) {
 	if (function_exists("json_decode")) {
 	    return json_decode($str);
 	} else {
@@ -661,6 +703,34 @@ function prettyTime($fromTime) {
         $years = round($dayDiff/365); 
         return $years . ' year' . ($years != 1 ? 's' : '') . ' ago'; 
     } 
+}
+
+function make_http_call($link) {
+	if (!$link) {
+		return array(500, 'Invalid Link');
+	}
+	require_once(ABSPATH.WPINC.'/class-snoopy.php');
+	$snoop = new Snoopy;
+	$snoop->agent = WIDGET_NAME.' - '.get_option('siteurl');
+	if($snoop->fetchtext($link)){
+		if (strpos($snoop->response_code, '200')) {
+			$response = $snoop->results;
+			return array(200, $response);
+		} 
+	}
+	if (!class_exists('WP_Http')) {
+		return array(500, $snoop->response_code);
+	}
+	$request = new WP_Http;
+	$headers = array( 'Agent' => WIDGET_NAME.' - '.get_option('siteurl') );
+	$response_full = $request->request( $link, array('headers' => $headers) );
+	$response_code = $response_full['response']['code'];
+	if ($response_code === 200) {
+		$response = $response_full['body'];
+		return array($response_code, $response);
+	}
+	$response_msg = $response_full['response']['message'];
+	return array($response_code, $response_msg);
 }
 
 ?>
