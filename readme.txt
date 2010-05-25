@@ -15,10 +15,12 @@ Plugin shows Tweets linking your Blog posts. Tweets show up below the comment fo
 
 Plugin shows Count of Tweets linking to your blog. Count can be configured to show next to "Comment Count" or "Blog Post Date" for each blog post.
 
-Also from the same developer:
+**Check out our other plugins that you will find extremely useful:**
 
-1. http://wordpress.org/extend/plugins/network-publisher/
-1. http://wordpress.org/extend/plugins/buzz-roll/
+* Social Discussions: show popularity of your blog posts on Social Networks including Twitter, Facebook, Google Buzz, Yahoo, and bit.ly. http://wordpress.org/extend/plugins/social-discussions/
+* Social Stats: track your blog activity on social networks - monthly/weekly/daily, and track your popular posts. http://wordpress.org/extend/plugins/social-stats/screenshots/
+* Network Publisher: auto publish your blog posts to Twitter, Facebook, LinkedIn, Yahoo, Yammer, Identi.ca, and MySpace. http://wordpress.org/extend/plugins/network-publisher/
+* Buzz Roll: let your users share your blog post on fastest growing social hub - Google Buzz. http://wordpress.org/extend/plugins/buzz-roll/screenshots/
 
 == Installation ==
 
