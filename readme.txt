@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: Vivek Puri
+Contributors: LinksAlpha
 Tags: twitter, retweet, social, news, trackbacks, trackback, buddypress
 Requires at least: 2.0.2
 Tested up to: 2.9.2
