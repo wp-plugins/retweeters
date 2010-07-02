@@ -36,7 +36,6 @@ Manual positioning of features on template:
 1. Tweets for each blog post: <code><?php load_link_tweets(); ?></code>  (example: If you want to add to single.php and index.php template)
 1. Tweet Count for each blog post: <code><?php load_tweet_count(); ?></code>  (example: If you want to add to index.php and sidebar.php template)
 
-Note: by downloading this plugin, you agree to Linksalpha terms of service at: http://www.linksalpha.com/about/tos
 
 == Screenshots ==
 
